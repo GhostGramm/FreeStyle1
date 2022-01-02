@@ -15,6 +15,8 @@ export class CameraController extends Component{
     @property(Node)
     public Map : Node;
 
+    private cam_pos : Vec3;
+    private moveSpeed : number = 10000;
     private TouchMoved : boolean;
     private Pos_Offset : Vec2
     private Bound : Vec2;
@@ -58,17 +60,16 @@ export class CameraController extends Component{
         this.Pos_Offset.x = delta1.x;
         this.Pos_Offset.y = delta1.y;
 
-        let cam_pos = this.Camera.node.getPosition();
+        this.cam_pos = this.Camera.node.getPosition();
 
-        cam_pos.x = cam_pos.x - this.Pos_Offset.x;
-        cam_pos.y = cam_pos.y - this.Pos_Offset.y;
+        this.cam_pos.x = this.cam_pos.x - this.Pos_Offset.x;
+        this.cam_pos.y = this.cam_pos.y - this.Pos_Offset.y;
 
-        // let newBound = new Vec2(((this.Bound.x/2) * 2) - (this.Camera.getChildByName("2DCamera").getComponent(Camera).orthoHeight * this.Camera.getChildByName("2DCamera").getComponent(Camera).camera.aspect), (this.Bound.y) - this.Camera.getChildByName("2DCamera").getComponent(Camera).orthoHeight);
-        // cam_pos = cam_pos.clampf(new Vec3(-newBound.x, -newBound.y, 1), new Vec3(newBound.x, newBound.y, 1))
-        // this.Camera.position = lerpVec3(this.Camera.position, cam_pos, 10 * delta);
-        // console.log(this.Camera.position);
-
-        this.Camera.node.setPosition(cam_pos);
+        let newBound = new Vec2(((this.Bound.x/2) * 2) - (this.Camera.orthoHeight * this.Camera.camera.aspect), (this.Bound.y) - this.Camera.orthoHeight);
+        this.cam_pos = this.cam_pos.clampf(new Vec3(-newBound.x, -newBound.y, 1000), new Vec3(newBound.x, newBound.y, 1000));
+        this.Camera.node.setPosition(lerpVec3(this.Camera.node.position, this.cam_pos, this.moveSpeed));
+        
+        // this.Camera.node.setPosition(this.cam_pos);
 
         // this.Cancel_Inner_Touch(event);
         this.stopPropagationIfTargetIsMe(event);
@@ -93,13 +94,14 @@ export class CameraController extends Component{
         }
     }
 
-    private Border(){
+    Border(){
         let map : Node = this.Map;
         let mapUI : UITransform = map.getComponent(UITransform);
         let right : number = mapUI.contentSize.x;
         let top : number = mapUI.contentSize.y;
         this.Bound = new Vec2(right, top);
     }
+
 
     onZoom(oldDistance : number, newDistance : number){
         let currentHeight = this.zoomHeight;
@@ -124,8 +126,7 @@ export class CameraController extends Component{
     // }
 
     update (deltaTime: number) {
-        // let newBound = new Vec2(((this.Bound.x/2) * 2) - (this.Camera.getComponent(Camera).orthoHeight * this.Camera.getComponent(Camera).camera.aspect), (this.Bound.y) - this.Camera.getComponent(Camera).orthoHeight);
-        // this.
+        
     }
 }
 
