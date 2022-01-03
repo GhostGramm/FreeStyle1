@@ -16,6 +16,7 @@ export class CameraController extends Component{
     public Map : Node;
 
     private cam_pos : Vec3;
+    private newBound : Vec2;
     private moveSpeed : number = 10000;
     private TouchMoved : boolean;
     private Pos_Offset : Vec2
@@ -34,13 +35,14 @@ export class CameraController extends Component{
         this.zoomHeight = this.Camera.orthoHeight;
         this.TouchMoved = false;
         this.Pos_Offset = new Vec2();
+        this.cam_pos = new Vec3();
         this.Border();
     }
 
     start () {
         systemEvent.on(SystemEvent.EventType.MOUSE_WHEEL,(event : EventMouse) =>{
             this.OnMouseWheel(event);
-        }, this)
+        }, this);
     }
 
     onTouchBegan(event : Event){
@@ -65,12 +67,8 @@ export class CameraController extends Component{
         this.cam_pos.x = this.cam_pos.x - this.Pos_Offset.x;
         this.cam_pos.y = this.cam_pos.y - this.Pos_Offset.y;
 
-        let newBound = new Vec2(((this.Bound.x/2) * 2) - (this.Camera.orthoHeight * this.Camera.camera.aspect), (this.Bound.y) - this.Camera.orthoHeight);
-        this.cam_pos = this.cam_pos.clampf(new Vec3(-newBound.x, -newBound.y, 1000), new Vec3(newBound.x, newBound.y, 1000));
-        this.Camera.node.setPosition(lerpVec3(this.Camera.node.position, this.cam_pos, this.moveSpeed));
+        this.clampCamera();
         
-        // this.Camera.node.setPosition(this.cam_pos);
-
         // this.Cancel_Inner_Touch(event);
         this.stopPropagationIfTargetIsMe(event);
 
@@ -116,6 +114,12 @@ export class CameraController extends Component{
     OnMouseWheel (event : EventMouse){
         let scrollDelta = math.clamp(event.getScrollY(), -1, 1);
         this.onZoom(1, (scrollDelta > 0) ? (1 / this.zoomSpeed) : this.zoomSpeed);
+        this.clampCamera();
+    }
+
+    clampCamera(){
+        this.cam_pos = this.cam_pos.clampf(new Vec3(-this.newBound.x, -this.newBound.y, 1000), new Vec3(this.newBound.x, this.newBound.y, 1000));
+        this.Camera.node.setPosition(lerpVec3(this.Camera.node.position, this.cam_pos, this.moveSpeed));
     }
 
     // CancelInnerTouch(event : EventTouch){
@@ -126,7 +130,7 @@ export class CameraController extends Component{
     // }
 
     update (deltaTime: number) {
-        
+        this.newBound = new Vec2(((this.Bound.x/2) * 2) - (this.Camera.orthoHeight * this.Camera.camera.aspect), (this.Bound.y) - this.Camera.orthoHeight);
     }
 }
 
